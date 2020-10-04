@@ -1,0 +1,348 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0X27,16,2);
+
+int period = 100;
+unsigned long time_now = 0;
+
+#include <SPI.h>
+#include "RF24.h"
+RF24 myRadio (7, 8);
+
+
+struct package {
+  int msg[10] = {0};
+};
+
+byte addresses [] [6] = {"0"};
+
+typedef struct package Package;
+  Package data;
+
+/////////////////////variable input////////////////
+
+//ini define input joystick
+#define joyX A1
+#define joyY A0
+int xValue,yValue;
+
+//Diese variabel ist fuer Tasten
+int kanan = 2, kananValue; 
+int kiri = 3, kiriValue;
+int menu = 5, menuValue;
+int enter = 6, enterValue;
+int playRec1 = 9, playRec1Value;
+int playRec2 = 10, playRec2Value;
+
+
+//Diese Variable ist fuer potentiometer
+int maxSpeedKB = A2,maxSpeedKBValue;
+int maxSpeedKK = A3,maxSpeedKKValue;
+int damping = A6, dampingValue;
+int deadBand = A7, deadBandValue;
+
+/////////////////////////kodingan settingan//////////////////////
+
+//ini variable untuk tau rising edge tombol-tombol
+//ini variable untuk tau rising edge tombol kanan
+int kananStateRising= 0;
+int kananRisingEdge = 0;       
+int lastKananStateRising = 0;  
+
+int kiriStateRising= 0;
+int kiriRisingEdge = 0;       
+int lastKiriStateRising = 0;  
+
+int menuStateRising= 0;
+int menuRisingEdge = 0;       
+int lastMenuStateRising = 0;  
+
+int enterStateRising= 0;
+int enterRisingEdge = 0;       
+int lastEnterStateRising = 0; 
+
+int playRec1StateRising= 0;
+int playRec1RisingEdge = 0;       
+int lastplayRec1StateRising = 0;  
+
+int playRec2StateRising= 0;
+int playRec2RisingEdge = 0;       
+int lastplayRec2StateRising = 0;  
+
+int buttonKanan(int button1) {
+  //Here starts the code for detecting a rising edge on pin 11
+   kananStateRising = digitalRead(button1);
+   if (kananStateRising != lastKananStateRising) {
+     if (kananStateRising == LOW) {
+          kananRisingEdge += 1;
+          Serial.println("kanan");
+      }
+   }
+   else{
+          //buttonRisingEdge = 0;
+          //Serial.println("There was no rising edge on left button");
+   }   
+   lastKananStateRising = kananStateRising; 
+
+   if(kananRisingEdge%2 != 0) return 1;
+   return 0;
+}
+
+int buttonKiri(int button1) {
+  //Here starts the code for detecting a rising edge on pin 11
+   kiriStateRising = digitalRead(button1);
+   if (kiriStateRising != lastKiriStateRising) {
+     if (kiriStateRising == LOW) {
+          kiriRisingEdge += 1;
+          Serial.println("kiri");
+      }
+   }
+   else{
+          //buttonRisingEdge = 0;
+          //Serial.println("There was no rising edge on left button");
+   }   
+   lastKiriStateRising = kiriStateRising; 
+
+   if(kiriRisingEdge%2 != 0) return 1;
+   return 0;
+}
+
+int buttonMenu(int button1) {
+  //Here starts the code for detecting a rising edge on pin 11
+   menuStateRising = digitalRead(button1);
+   if (menuStateRising != lastMenuStateRising) {
+     if (menuStateRising == LOW) {
+          menuRisingEdge += 1;
+          Serial.println("menu");
+      }
+   }
+   else{
+          //buttonRisingEdge = 0;
+          //Serial.println("There was no rising edge on left button");
+   }   
+   lastMenuStateRising = menuStateRising; 
+
+   if(menuRisingEdge%2 != 0) return 1;
+   return 0;
+}
+
+int buttonEnter(int button1) {
+  //Here starts the code for detecting a rising edge on pin 11
+   enterStateRising = digitalRead(button1);
+   if (enterStateRising != lastEnterStateRising) {
+     if (enterStateRising == LOW) {
+          enterRisingEdge += 1;
+          Serial.println("enter");
+      }
+   }
+   else{
+          //buttonRisingEdge = 0;
+          //Serial.println("There was no rising edge on left button");
+   }   
+   lastEnterStateRising = enterStateRising; 
+
+   if(enterRisingEdge%2 != 0) return 1;
+   return 0;
+}
+
+int buttonplayRec1(int button1) {
+  //Here starts the code for detecting a rising edge on pin 11
+   playRec1StateRising = digitalRead(button1);
+   if (playRec1StateRising != lastplayRec1StateRising) {
+     if (playRec1StateRising == LOW) {
+          playRec1RisingEdge += 1;
+          Serial.println("playRec1");
+      }
+   }
+   else{
+          //buttonRisingEdge = 0;
+          //Serial.println("There was no rising edge on left button");
+   }   
+   lastplayRec1StateRising = playRec1StateRising; 
+
+   if(playRec1RisingEdge%2 != 0) return 1;
+   return 0;
+}
+
+int buttonplayRec2(int button1) {
+  //Here starts the code for detecting a rising edge on pin 11
+   playRec2StateRising = digitalRead(button1);
+   if (playRec2StateRising != lastplayRec2StateRising) {
+     if (playRec2StateRising == LOW) {
+          playRec2RisingEdge += 1;
+          Serial.println("playRec2");
+      }
+   }
+   else{
+          //buttonRisingEdge = 0;
+          //Serial.println("There was no rising edge on left button");
+   }   
+   lastplayRec2StateRising = playRec2StateRising; 
+
+   if(playRec2RisingEdge%2 != 0) return 1;
+   return 0;
+}
+
+
+
+/////////////////////////////////////////////////////////////////
+
+void displayValue(int xValue,int yValue,int slider) {
+  int xValue21,xValue22, yValue21,yValue22, slider21,slider22;
+  xValue21 = map(xValue, 0, 255, 0, 100);
+  xValue22 = map(xValue,0,-255,0,100);
+  yValue21 = map(yValue,0,255,0,100);
+  yValue22 = map(yValue, 0,-255,0,100);
+  slider21 = map(slider, 0,255, 0,100);
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("pan");
+  lcd.setCursor(5,0);
+  lcd.print("tilt"); 
+  lcd.setCursor(10,0);
+  lcd.print("slide");
+  lcd.setCursor(0,1);
+  if(xValue >= 0) lcd.print(xValue21);
+  else lcd.print(xValue22);
+  lcd.print("%");
+  lcd.setCursor(6,1);
+  if(yValue >= 0) lcd.print(yValue21);
+  else lcd.print(yValue22);
+  lcd.print("%");
+  lcd.setCursor(11,1);
+  lcd.print(slider21);
+  lcd.print("%");
+
+  
+  
+  
+  //menuValue = buttonRead(menu);
+  /*while(menuValue == 1) {
+    lcd.clear();
+    lcd.home();
+    lcd.print("    Settings");
+  }*/
+}
+
+
+
+void WriteData () {
+  myRadio.stopListening (); // Stop Receiving and start transminitng
+  myRadio.openWritingPipe (0xF0F0F0F0BB); // Sends data on this 40-bit address
+  myRadio.write (& data, sizeof (data));
+  Serial.print ("\ nSent:");
+  Serial.print (data.msg[0]);
+  Serial.print (" ");
+  Serial.print (data.msg[1]);
+  Serial.print (" ");
+  Serial.print (data.msg[2]);
+  Serial.print (" ");
+  Serial.print (data.msg[3]);
+  Serial.print (" ");
+  Serial.println(data.msg[4]);
+  delay(10);
+  //delay (300);
+}
+
+void setup() {
+  // put your setup code here, to run once:
+  
+  pinMode(kanan,INPUT);   pinMode(kiri,INPUT);
+  pinMode(menu,INPUT);   pinMode(enter,INPUT);
+  pinMode(playRec1,INPUT);   pinMode(playRec2,INPUT);
+
+  pinMode(maxSpeedKB,INPUT);   pinMode(maxSpeedKK,INPUT);
+  pinMode(damping,INPUT);   pinMode(deadBand,INPUT);
+
+  lcd.init();
+  lcd.backlight();
+
+    lcd.setCursor(0,0);
+    lcd.print(" IcanStudioLive");
+    lcd.setCursor(0,1);
+    lcd.print("RobotArm Control");
+    //lcd.scrollDisplayLeft();
+    delay(3000);
+
+  
+  Serial.begin (9600);
+  myRadio.begin ();
+  myRadio.setChannel (115); // 115 band above WIFI signals
+  myRadio.setPALevel (RF24_PA_MIN); // MIN power low rage
+  myRadio.setDataRate (RF24_250KBPS); // Minimum speed
+  lcd.clear();
+  lcd.home();
+  lcd.setCursor(5,0);
+  lcd.print ("Setup");
+  lcd.setCursor(3,1);
+  lcd.print("Inisialized");
+  delay (1000);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  
+  kananValue = digitalRead(kanan);
+  kiriValue = digitalRead(kiri);
+  //menuValue = buttonMenu(menu);
+  //enterValue = buttonEnter(enter);
+  xValue = map(analogRead(joyX), 0, 1023, 255, -255);
+  yValue = map(analogRead(joyY), 0, 1023, 255, -255);
+  //playRec1Value = buttonplayRec1(playRec1);
+  //playRec2Value = buttonplayRec2(playRec2);
+  playRec2Value = digitalRead(playRec2);
+  playRec1Value = digitalRead(playRec1);
+  menuValue = digitalRead(menu);
+  enterValue = digitalRead(enter);
+  
+  maxSpeedKBValue = map(analogRead(maxSpeedKB),0,1023,0,255);
+  maxSpeedKKValue = map(analogRead(maxSpeedKK),0,1023,0,255);
+  dampingValue = map(analogRead(damping),0,1023,0,255);
+  deadBandValue = map(analogRead(deadBand),0,1023,0,255);
+
+  Serial.print(kananValue);
+  Serial.print(" ");
+  Serial.print(kiriValue);
+    Serial.print(" ");
+  Serial.print(menuValue);
+    Serial.print(" ");
+  Serial.print(enterValue);
+    Serial.print(" ");
+    Serial.print(playRec1Value);
+      Serial.print(" ");
+      Serial.print(playRec2Value);
+        Serial.print(" ");
+  Serial.print(xValue);
+    Serial.print(" ");
+  Serial.print(yValue);
+    Serial.print(" ");
+  Serial.print(maxSpeedKBValue);
+    Serial.print(" ");
+  Serial.print(maxSpeedKKValue);
+    Serial.print(" ");
+  Serial.print(dampingValue);
+    Serial.print(" ");
+  Serial.println(deadBandValue);
+
+//////////////////kirim data////////////////////////
+  data.msg[0] = kananValue;
+  data.msg[1] = kiriValue;
+  data.msg[2] = maxSpeedKKValue;
+  data.msg[3] = yValue;
+  data.msg[4] = xValue;
+  /*data.msg[5] = 0;
+  data.msg[6] = 0;
+  data.msg[7] = 0;
+  data.msg[8] = 0;
+  WriteData ();
+  delay(10);
+  */
+  WriteData();
+    if(millis() >= time_now + period){
+        time_now += period;
+        displayValue(xValue, yValue, maxSpeedKKValue);
+    }
+  
+}

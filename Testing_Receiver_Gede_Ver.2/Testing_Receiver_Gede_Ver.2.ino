@@ -1,0 +1,571 @@
+#include <SPI.h>
+#include "RF24.h"
+#include <PWM.h>
+
+//PENTING!!!!
+//KALO MAU SUPAYA DATANYA DITERIMA SECARA REAL TIME, DATA YG DIKIRIM
+//DENGAN DATA YANG DITERIMA HARUS SAMA PERSIS! TATA LETAK ARRAY, TIPE DATA
+//DALAM ARRAY, SEMUANYA!!!
+
+//itu buat masalah yg delay di receiver dan delay di transmitter udah sama
+//tapi rate data yg diterima masih gak sama
+
+////////////////Funktionalitat von Radios//////////
+RF24 myRadio (7, 8);
+
+struct package {
+  int msg;
+};
+typedef struct package Package;
+Package data[10];
+
+//packet data
+//data0 = tombol kaki kanan
+//data1 = tombol kaki kiri
+//data2 = potentio kaki
+//data3 = yvalue (potentio kepala)
+//data4 = xvalue (potentio badan)
+
+byte addresses [] [6] = {"0"};
+
+int dataIn;
+
+/////////////////////variable input//////////////
+
+//ini define input joystick
+#define joyX A1
+#define joyY A0
+int xValue,yValue,xValue2,yValue2;
+
+//ini variabel untuk kontrol kecepatan motor
+//A1 = RPWM A2 = LPWM
+//Du kannst nicht die A1 und A2 werte HIGH machen!
+int8_t kepalaA1 = 2, kepalaA2 = 3, kepalaB1 = 4, kepalaB2 = 5;
+int8_t badanA1 = 6, badanA2 = 9, badanB1 = 10, badanB2 = 11;
+int8_t kakiA1 = 12, kakiA2 = 13;
+
+//Dies ist die Variable fuer aktivieren die Motor
+int enkepalaA1 = 32, enkepalaA2 = 33, enkepalaB1 = 34, enkepalaB2 = 35;
+int enbadanA1 = 36, enbadanA2 = 37, enbadanB1 = 38, enbadanB2 = 39;
+int enkakiA1 = 40, enkakiA2 = 41;
+
+//Diese variabel ist fuer Tasten
+int kanan = 42; 
+int kiri = 43;
+int menu = 44, menuValue;
+int enter = 46, enterValue;
+int playRec1 = 47, playRec1Value;
+int playRec2 = 48,playRec2Value;
+
+//Diese Variable ist fuer potentiometer
+int maxSpeedKB = A2,maxSpeedKBValue; //potentio atur kecepatan kepala badan
+int maxSpeedKK = A3,maxSpeedKKValue; //potentio atur kecepatan kaki
+int damping = A6, dampingValue; //potentio atur damping
+int deadBand = A7, deadBandValue; //potentio atur deadband
+
+//ini data hasil output sistem
+int kepala, badan, kaki;
+
+/////////der Funktion fuer Motorbewegung////////////////
+
+int turnMotorKepala(/*int yValue2,*/ int data3) {
+  /*
+  if(yValue2 >= 10 ) {
+    digitalWrite(enkepalaA1, HIGH);
+    digitalWrite(enkepalaA2, HIGH);
+    digitalWrite(enkepalaB1, HIGH);
+    digitalWrite(enkepalaB2, LOW);
+    analogWrite(kepalaA1, yValue2);
+    analogWrite(kepalaA2, LOW);
+    analogWrite(kepalaB1, yValue2);
+    analogWrite(kepalaB2, LOW);
+    //analogWrite(enBkepala, yValue2);
+    //Serial.print(yValue2);
+    return 1;
+  }
+  else if(yValue2 <= -10) {
+    digitalWrite(enkepalaA1, HIGH);
+    digitalWrite(enkepalaA2, HIGH);
+    digitalWrite(enkepalaB1, LOW);
+    digitalWrite(enkepalaB2, HIGH);
+    analogWrite(kepalaA1, LOW);
+    analogWrite(kepalaA2, yValue2*-1);
+    analogWrite(kepalaB1, LOW);
+    analogWrite(kepalaB2, yValue2*-1);
+    //analogWrite(enBkepala, yValue2*-1);
+    //Serial.print(yValue2*-1);
+    return 2;
+  } */
+  /*else*/ if(data3 >= 10) {
+    digitalWrite(enkepalaA1, HIGH);
+    digitalWrite(enkepalaA2, HIGH);
+    digitalWrite(enkepalaB1, HIGH);
+    digitalWrite(enkepalaB2, HIGH);
+    analogWrite(kepalaA1, data3);
+    analogWrite(kepalaA2, LOW);
+    analogWrite(kepalaB1, data3);
+    analogWrite(kepalaB2, LOW);
+    //analogWrite(enBkepala, yValue2*-1);
+    //Serial.print(yValue2*-1);
+    return 1;
+  }
+  else if(data3 <= -10) {
+    digitalWrite(enkepalaA1, HIGH);
+    digitalWrite(enkepalaA2, HIGH);
+    digitalWrite(enkepalaB1, HIGH);
+    digitalWrite(enkepalaB2, HIGH);
+    analogWrite(kepalaA1, LOW);
+    analogWrite(kepalaA2, data3*-1);
+    analogWrite(kepalaB1, LOW);
+    analogWrite(kepalaB2, data3*-1);
+    //analogWrite(enBkepala, yValue2*-1);
+    //Serial.print(yValue2*-1);
+    return 2;
+  }
+  
+  else {/*
+    while (yValue2 >= 10) {
+      analogWrite(kepalaA1, yValue2);
+      analogWrite(kepalaA2, LOW);
+      analogWrite(kepalaB1, yValue2);
+      analogWrite(kepalaB2, LOW);
+      yValue2 -= 10;
+      delay(50);
+    }
+    while (yValue2 <= -10) {
+      analogWrite(kepalaA1, LOW);
+      analogWrite(kepalaA2, yValue2);
+      analogWrite(kepalaB1, LOW);
+      analogWrite(kepalaB2, yValue2);
+      yValue2 += 10;
+      delay(50);
+    }*/
+    while (data3 >= 10) {
+      digitalWrite(enkepalaA1, HIGH);
+      digitalWrite(enkepalaA2, HIGH);
+      digitalWrite(enkepalaB1, HIGH);
+      digitalWrite(enkepalaB2, HIGH);
+      analogWrite(kepalaA1, data3);
+      analogWrite(kepalaA2, LOW);
+      analogWrite(kepalaB1, data3);
+      analogWrite(kepalaB2, LOW);
+      data3 -= 10;
+      delay(50);
+    }
+    while (data3 <= -10) {
+      digitalWrite(enkepalaA1, HIGH);
+      digitalWrite(enkepalaA2, HIGH);
+      digitalWrite(enkepalaB1, HIGH);
+      digitalWrite(enkepalaB2, HIGH);
+      analogWrite(kepalaA1, LOW);
+      analogWrite(kepalaA2, data3);
+      analogWrite(kepalaB1, LOW);
+      analogWrite(kepalaB2, data3);
+      data3 += 10;
+      delay(50);
+    }
+
+    digitalWrite(enkepalaA1, LOW);
+    digitalWrite(enkepalaA2, LOW);
+    digitalWrite(enkepalaB1, LOW);
+    digitalWrite(enkepalaB2, LOW);
+  }
+  return 0;
+  //Serial.println("motor diam");
+}
+
+int turnMotorBadan(/*int xValue2,*/ int data4) {
+  /*
+  if(xValue2 >= 10 ) {
+    digitalWrite(enbadanA1, HIGH);
+    digitalWrite(enbadanA2, HIGH);
+    digitalWrite(enbadanB1, HIGH);
+    digitalWrite(enbadanB2, LOW);
+    analogWrite(badanA1, xValue2);
+    analogWrite(badanA2, LOW);
+    analogWrite(badanB1, xValue2);
+    analogWrite(badanB2, LOW);
+    //analogWrite(enBkepala, yValue2);
+    //Serial.print(yValue2);
+    return 1;
+  }
+  else if(xValue2 <= -10) {
+    digitalWrite(enbadanA1, HIGH);
+    digitalWrite(enbadanA2, HIGH);
+    digitalWrite(enbadanB1, LOW);
+    digitalWrite(enbadanB2, HIGH);
+    analogWrite(badanA1, LOW);
+    analogWrite(badanA2, xValue2*-1);
+    analogWrite(badanB1, LOW);
+    analogWrite(badanB2, xValue2*-1);
+    //analogWrite(enBkepala, yValue2*-1);
+    //Serial.print(yValue2*-1);
+    return 2;
+  }
+  */
+  /*else*/ if(data4 >= 10) {
+    digitalWrite(enbadanA1, HIGH);
+    digitalWrite(enbadanA2, HIGH);
+    digitalWrite(enbadanB1, HIGH);
+    digitalWrite(enbadanB2, HIGH);
+    analogWrite(badanA1, data4);
+    analogWrite(badanA2, LOW);
+    analogWrite(badanB1, data4);
+    analogWrite(badanB2, LOW);
+    //analogWrite(enBkepala, yValue2*-1);
+    //Serial.print(yValue2*-1);
+    return 1;
+  }
+  else if(data4 <= -10) {
+    digitalWrite(enbadanA1, HIGH);
+    digitalWrite(enbadanA2, HIGH);
+    digitalWrite(enbadanB1, HIGH);
+    digitalWrite(enbadanB2, HIGH);
+    analogWrite(badanA1, LOW);
+    analogWrite(badanA2, data4*-1);
+    analogWrite(badanB1, LOW);
+    analogWrite(badanB2, data4*-1);
+    //analogWrite(enBkepala, yValue2*-1);
+    //Serial.print(yValue2*-1);
+    return 2;
+  }
+  
+  else {/*
+    while (xValue2 >= 10) {
+      analogWrite(badanA1, xValue2);
+      analogWrite(badanA2, LOW);
+      analogWrite(badanB1, xValue2);
+      analogWrite(badanB2, LOW);
+      xValue2 -= 10;
+      delay(50);
+    }
+    while (xValue2 <= -10) {
+      analogWrite(badanA1, LOW);
+      analogWrite(badanA2, xValue2);
+      analogWrite(badanB1, LOW);
+      analogWrite(badanB2, xValue2);
+      xValue2 += 10;
+      delay(50);
+    }*/
+    while (data4 >= 10) {
+      digitalWrite(enbadanA1, HIGH);
+      digitalWrite(enbadanA2, HIGH);
+      digitalWrite(enbadanB1, HIGH);
+      digitalWrite(enbadanB2, HIGH);
+      analogWrite(badanA1, data4);
+      analogWrite(badanA2, LOW);
+      analogWrite(badanB1, data4);
+      analogWrite(badanB2, LOW);
+      data4 -= 10;
+      delay(50);
+    }
+    while (data4 <= -10) {
+      digitalWrite(enbadanA1, HIGH);
+      digitalWrite(enbadanA2, HIGH);
+      digitalWrite(enbadanB1, HIGH);
+      digitalWrite(enbadanB2, HIGH);
+      analogWrite(badanA1, LOW);
+      analogWrite(badanA2, data4);
+      analogWrite(badanB1, LOW);
+      analogWrite(badanB2, data4);
+      data4 += 10;
+      delay(50);
+    }
+
+    digitalWrite(enbadanA1, LOW);
+    digitalWrite(enbadanA2, LOW);
+    digitalWrite(enbadanB1, LOW);
+    digitalWrite(enbadanB2, LOW);
+  }
+  return 0;
+  //Serial.println("motor diam");
+}
+
+
+int turnMotorKaki(/*int in1, int in2, int PWM,*/ int data0, int data1, int data2) {
+  /*
+  if(digitalRead(in1) == HIGH && digitalRead(in2) == LOW) {
+    digitalWrite(enkakiA1, HIGH);
+    digitalWrite(enkakiA2, HIGH);
+    analogWrite(kakiA1, PWM);
+    analogWrite(kakiA2, LOW);
+    return 1;
+  }
+  else if(digitalRead(in1) == LOW && digitalRead(in2) == HIGH) {
+    digitalWrite(enkakiA1, HIGH);
+    digitalWrite(enkakiA2, HIGH);
+    analogWrite(kakiA1, LOW);
+    analogWrite(kakiA2, PWM);
+    return 2;
+  }*/
+  /*else*/ if(data0 == 1 && data1 == 0) {
+    digitalWrite(enkakiA1, HIGH);
+    digitalWrite(enkakiA2, HIGH);
+    analogWrite(kakiA1, data2);
+    analogWrite(kakiA2, LOW);
+    return 1;
+  }
+  else if(data0 == 0 && data1 == 1) {
+    digitalWrite(enkakiA1, HIGH);
+    digitalWrite(enkakiA2, HIGH);
+    analogWrite(kakiA1, LOW);
+    analogWrite(kakiA2, data2);
+    return 2;
+  }
+  else {
+    //if(data2 >= PWM) PWM = data2;
+    while(data2 >= 10) {
+      digitalWrite(enkakiA1, HIGH);
+      digitalWrite(enkakiA2, HIGH);
+      analogWrite(kakiA1, data2);
+      analogWrite(kakiA2, LOW);
+      data2 -= 10;
+      delay(50);    
+    }
+    while(data2 >= 10) {
+      digitalWrite(enkakiA1, HIGH);
+      digitalWrite(enkakiA2, HIGH);
+      analogWrite(kakiA1, LOW);
+      analogWrite(kakiA2, data2);
+      data2 -= 10;
+      delay(50);
+    }
+    digitalWrite(enkakiA1, LOW);
+    digitalWrite(enkakiA2, LOW);
+    analogWrite(kakiA1, LOW);
+    analogWrite(kakiA2, LOW);
+  }
+  return 0;
+}
+
+
+void displayOutput(int kepala, int badan, int kaki) {
+  Serial.print("Output: ");
+  if(kepala == 1) Serial.print("muter atas  ");
+  if(kepala == 2) Serial.print("muter bawah  ");
+  if(badan == 1) Serial.print("muter kanan  ");
+  if(badan == 2) Serial.print("muter kiri  ");
+  if(kaki == 1) Serial.print("ke kanan  ");
+  if(kaki == 2) Serial.print("ke kiri  ");
+  Serial.println("");
+}
+/////////////////////////////////////////////////////////
+
+////////////////////kodingan settingan//////////////////
+/*
+//ini variable untuk tau rising edge tombol-tombol
+int buttonStateRising = 0;
+int buttonRisingEdge = 0;
+int lastButtonStateRising = 0;
+
+int buttonRead(int btn) {
+//Here starts the code for detecting a rising edge on pin 11
+   buttonStateRising = digitalRead(btn);
+   if (buttonStateRising != lastButtonStateRising) {
+     if (buttonStateRising == HIGH) {
+        buttonRisingEdge = 0;
+        Serial.println("Tombol itu kepencet");
+        return 1;
+     }
+   }
+   else{
+        //buttonRisingEdge = 1;
+        //Serial.println("There was no rising edge on pin 11");
+   }   
+   lastButtonStateRising = buttonStateRising; 
+   return 0;
+}
+
+///////////////////////////////////////////////////////
+*/
+////////der Funktion fuer Datenuebertragung/////////////
+
+int ReadData () {
+  myRadio.openReadingPipe (1, 0xF0F0F0F0AA); // Which pipe to read, 40 bit address
+  myRadio.startListening (); // Stop Transminting and start Reveicing
+  if (myRadio.available ()) {
+    while (myRadio.available ()) {
+      myRadio.read (& data, sizeof (data));
+    }
+    for (byte i=0; i<5; i++){
+      //Serial.println(data[i].msg);
+    }
+  //Serial.print ("\ nReceived:");
+  //Serial.println (data.msg);
+    Serial.println();
+    return 1;
+  }
+  return 0;
+}
+
+//////////////////////////////////////////////////////
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  // put your setup code here, to run once:
+  //Dieser Code ist Fuer die Motorgeraeusch
+  //InitTimersSafe();
+  /*
+  Timer1_SetFrequency(10000);
+  Timer2_SetFrequency(10000);
+  Timer3_SetFrequency(10000);
+  Timer4_SetFrequency(10000);
+  */
+  //InitTimers();
+  int32_t frequency = 50000;
+
+  int myEraser = 7;             // this is 111 in binary and is used as an eraser
+  TCCR2B &= ~myEraser;   // this operation (AND plus NOT),  set the three bits in TCCR2B to 0
+  TCCR0B &= ~myEraser;
+  
+  int myPrescaler = 1;         // this could be a number in [1 , 6]. In this case, 3 corresponds in binary to 011.   
+  TCCR2B |= myPrescaler;  //this operation (OR), replaces the last three bits in TCCR2B with our new value 011
+  TCCR0B |= myPrescaler;
+  SetPinFrequency(kepalaA1, frequency);
+  SetPinFrequency(kepalaA2, frequency);
+  SetPinFrequency(kepalaB1, frequency);
+  SetPinFrequency(kepalaB2, frequency);
+  SetPinFrequency(badanA1, frequency);
+  SetPinFrequency(badanA2, frequency);
+  SetPinFrequency(badanB1, frequency);
+  SetPinFrequency(badanB2, frequency);
+  SetPinFrequency(kakiA1, frequency);
+  SetPinFrequency(kakiA2, frequency);
+  
+
+  //Dieser code ist fuer das Radio funktionalitaet
+  Serial.begin (9600);
+  myRadio.begin ();
+  myRadio.setChannel (115); // 115 band above WIFI signals
+  myRadio.setPALevel (RF24_PA_MIN); // MIN power low rage
+  myRadio.setDataRate (RF24_250KBPS); // Minimum speed
+  Serial.print ("Setup Initialized");
+  delay (500);
+
+  pinMode(kepalaA1,OUTPUT);   pinMode(kepalaA2,OUTPUT);
+  pinMode(kepalaB1,OUTPUT);   pinMode(kepalaB2,OUTPUT);
+  pinMode(badanA1,OUTPUT);   pinMode(badanA2,OUTPUT);
+  pinMode(badanB1,OUTPUT);   pinMode(badanB2,OUTPUT);
+  pinMode(kakiA1,OUTPUT);   pinMode(kakiA2,OUTPUT);
+  pinMode(enkepalaA1,OUTPUT);   pinMode(enkepalaA2,OUTPUT);
+  pinMode(enkepalaB1,OUTPUT);   pinMode(enkepalaB2,OUTPUT);
+  pinMode(enbadanA1,OUTPUT);   pinMode(enbadanA2,OUTPUT);
+  pinMode(enbadanB1,OUTPUT);   pinMode(enbadanB2,OUTPUT);
+  pinMode(enkakiA1,OUTPUT);   pinMode(enkakiA2,OUTPUT);
+  
+  pinMode(kanan,INPUT);   pinMode(kiri,INPUT);
+  pinMode(menu,INPUT);   pinMode(enter,INPUT);
+  pinMode(playRec1,INPUT);   pinMode(playRec2,INPUT);
+
+  pinMode(maxSpeedKB,INPUT);   pinMode(maxSpeedKK,INPUT);
+  pinMode(damping,INPUT);   pinMode(deadBand,INPUT); 
+  /*
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(300);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(300);
+    digitalWrite(LED_BUILTIN, HIGH);
+  delay(300);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(300);
+      digitalWrite(LED_BUILTIN, HIGH);
+  delay(300);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(300);
+      digitalWrite(LED_BUILTIN, HIGH);
+  delay(300);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(300);
+  //delay(5000);
+  */
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  Serial.println(Timer0_GetFrequency());
+  Serial.println(Timer1_GetFrequency());
+  Serial.println(Timer2_GetFrequency());
+  Serial.println(Timer3_GetFrequency());
+  Serial.println(Timer4_GetFrequency());
+  //Serial.println(Timer5_GetFrequency());
+
+  
+  dataIn = ReadData ();
+  Serial.println(dataIn);
+
+  //int data2; //biar nilainya 0 dari data[2].msg nya aja gak selalu kekirim
+
+    if(dataIn == 1) {
+      xValue = analogRead(joyX);
+      yValue = analogRead(joyY);
+      yValue2 = map(yValue, 0,1023,-127.5,127.5);
+      xValue2 = map(xValue, 0,1023,127.5 ,-127.5);
+      
+      
+      //kaki = turnMotorKaki(/*kanan, kiri, maxSpeedKKValue,*/ data[0].msg, data[1].msg, data[2].msg);
+      if(/*digitalRead(kanan)*/data[0].msg == HIGH || /*digitalRead(kiri)*/data[1].msg == HIGH) {
+        maxSpeedKKValue = /*analogRead(maxSpeedKK)*/data[2].msg;
+        //maxSpeedKKValue = map(analogRead(maxSpeedKK), 0,1023,0,255);
+      }
+
+      else if(digitalRead(kanan) == LOW && digitalRead(kiri) == LOW) {
+        maxSpeedKKValue = 0;
+      }
+      //kaki = turnMotorKaki(/*kanan, kiri, maxSpeedKKValue,*/ data[0].msg, data[1].msg, maxSpeedKKValue );
+      if(data[0].msg == HIGH && data[1].msg == LOW) { 
+          digitalWrite(enkakiA1, HIGH);
+          digitalWrite(enkakiA2, HIGH);
+          analogWrite(kakiA1, data[2].msg);
+          analogWrite(kakiA2, LOW);
+      }
+      else if(data[0].msg == LOW && data[1].msg == HIGH) {
+          digitalWrite(enkakiA1, HIGH);
+          digitalWrite(enkakiA2, HIGH);
+          analogWrite(kakiA2, data[2].msg);
+          analogWrite(kakiA1, LOW);
+      }
+      else {
+          digitalWrite(enkakiA1, LOW);
+          digitalWrite(enkakiA2, LOW);
+          analogWrite(kakiA2, LOW);
+          analogWrite(kakiA1, LOW);
+      }
+
+      
+      kepala = turnMotorKepala(/*yValue2,*/ data[3].msg);
+      badan = turnMotorBadan(/*xValue2,*/ data[4].msg);
+
+
+      displayOutput(kepala, badan, kaki);
+
+      Serial.println(xValue2);
+
+      
+    }
+   
+  if(dataIn == 0) {
+    digitalWrite(enkepalaA1, LOW);
+    digitalWrite(enkepalaA2, LOW);
+    digitalWrite(enkepalaB1, LOW);
+    digitalWrite(enkepalaB2, LOW);
+    analogWrite(kepalaA1, LOW);
+    analogWrite(kepalaA2, LOW);
+    analogWrite(kepalaB1, LOW);
+    analogWrite(kepalaB2, LOW);
+
+    digitalWrite(enbadanA1, LOW);
+    digitalWrite(enbadanA2, LOW);
+    digitalWrite(enbadanB1, LOW);
+    digitalWrite(enbadanB2, LOW);
+    analogWrite(badanA1, LOW);
+    analogWrite(badanA2, LOW);
+    analogWrite(badanB1, LOW);
+    analogWrite(badanB2, LOW);
+
+    digitalWrite(enkakiA1, LOW);
+    digitalWrite(enkakiA2, LOW);
+    analogWrite(kakiA1, LOW);
+    analogWrite(kakiA2, LOW);
+  } 
+  delay(10);
+}
