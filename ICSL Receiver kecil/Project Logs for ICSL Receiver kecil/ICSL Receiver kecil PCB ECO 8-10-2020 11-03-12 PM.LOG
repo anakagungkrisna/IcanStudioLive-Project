@@ -1,0 +1,67 @@
+Added Component: Designator=*(PCBComponent_1)
+Added Component: Designator=*(PCBComponent_1)
+Added Component: Designator=*(PCBComponent_1)
+Added Component: Designator=*(ArduinoNano)
+Added Component: Designator=nrf(HDR2X4_CEN)
+Added Pin To Net: NetName=3.3V Pin=*-1
+Added Pin To Net: NetName=3.3V Pin=nrf-4
+Added Net: Name=3.3V
+Added Pin To Net: NetName=5V Pin=*-3
+Added Pin To Net: NetName=5V Pin=*-11
+Added Net: Name=5V
+Added Pin To Net: NetName=12V Pin=*-1
+Added Net: Name=12V
+Added Pin To Net: NetName=D2 Pin=*-8
+Added Pin To Net: NetName=D2 Pin=*-19
+Added Net: Name=D2
+Added Pin To Net: NetName=D3 Pin=*-7
+Added Pin To Net: NetName=D3 Pin=*-20
+Added Net: Name=D3
+Added Pin To Net: NetName=D4 Pin=*-6
+Added Pin To Net: NetName=D4 Pin=*-21
+Added Net: Name=D4
+Added Pin To Net: NetName=D5 Pin=*-5
+Added Pin To Net: NetName=D5 Pin=*-22
+Added Net: Name=D5
+Added Pin To Net: NetName=D7 Pin=*-24
+Added Pin To Net: NetName=D7 Pin=nrf-7
+Added Net: Name=D7
+Added Pin To Net: NetName=D8 Pin=*-25
+Added Pin To Net: NetName=D8 Pin=nrf-3
+Added Net: Name=D8
+Added Pin To Net: NetName=D9 Pin=*-9
+Added Net: Name=D9
+Added Pin To Net: NetName=D10 Pin=*-4
+Added Net: Name=D10
+Added Pin To Net: NetName=D11 Pin=*-28
+Added Pin To Net: NetName=D11 Pin=nrf-2
+Added Net: Name=D11
+Added Pin To Net: NetName=D12 Pin=*-29
+Added Pin To Net: NetName=D12 Pin=nrf-5
+Added Net: Name=D12
+Added Pin To Net: NetName=D13 Pin=*-0
+Added Pin To Net: NetName=D13 Pin=nrf-6
+Added Net: Name=D13
+Added Pin To Net: NetName=GND Pin=*-2
+Added Pin To Net: NetName=GND Pin=*-13
+Added Pin To Net: NetName=GND Pin=*-18
+Added Pin To Net: NetName=GND Pin=nrf-8
+Added Net: Name=GND
+Added Pin To Net: NetName=NETLABEL374 Pin=*-26
+Added Net: Name=NETLABEL374
+Added Pin To Net: NetName=NETLABEL375 Pin=*-27
+Added Net: Name=NETLABEL375
+Added Pin To Net: NetName=OUT1 Pin=*-1
+Added Pin To Net: NetName=OUT1 Pin=*-10
+Added Net: Name=OUT1
+Added Pin To Net: NetName=OUT2 Pin=*-2
+Added Pin To Net: NetName=OUT2 Pin=*-11
+Added Net: Name=OUT2
+Added Pin To Net: NetName=OUT3 Pin=*-2
+Added Pin To Net: NetName=OUT3 Pin=*-12
+Added Net: Name=OUT3
+Added Pin To Net: NetName=OUT4 Pin=*-1
+Added Pin To Net: NetName=OUT4 Pin=*-13
+Added Net: Name=OUT4
+Added Class: Name=ICSL Receiver kecil
+Added Room: Name=ICSL Receiver kecil

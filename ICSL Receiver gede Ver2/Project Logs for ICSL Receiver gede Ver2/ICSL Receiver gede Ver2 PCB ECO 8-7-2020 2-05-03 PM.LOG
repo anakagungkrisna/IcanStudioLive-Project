@@ -1,0 +1,4 @@
+Removed Pin From Net: NetName=RX Pin=*-11
+Removed Pin From Net: NetName=TX Pin=*-12
+Added Pin To Net: NetName=RX Pin=*-27
+Added Pin To Net: NetName=TX Pin=*-28
