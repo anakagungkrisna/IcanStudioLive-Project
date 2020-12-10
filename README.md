@@ -12,3 +12,13 @@ NOTE: the code servo-pan-tilt-with-NRF does not work anymore for some reason. Th
 <img src = "TRgede.jpg">
 <img src = "TRkecil.jpg">
 
+You can get the schematic and the PCB file for the first image in:
+1. 40_pin_hbridge for the power distribution board
+2. ICSL_Receiver_gede_Ver.2 for the receiver
+3. IcanStudioLive_controller for the transmitter.
+
+You can get the schematic and the PCB file for the second image in:
+1. ICSL_Receiver_kecil for the receiver
+2. IcanStudioLive_Controller_Mini_fix for the transmitter
+
+
