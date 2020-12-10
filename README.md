@@ -9,6 +9,6 @@ The code for Transmitter-with-control is the wireless controller(transmitter) co
 
 NOTE: the code servo-pan-tilt-with-NRF does not work anymore for some reason. This is the first time i face, where at first it works like a charm, but when i try it next week, it does not work at all. The updated version of the code is the Testing_Receiver_Gede_Ver.2. and for the Transmitter-with-control, the updated version is Testing_Transmitter_Gede_Ver.2 . I developed those updated version in the NRF24L01 boat control project, then i implement it in this project. At last the code never fails. The struct method in the code also can be used for other communication like RX TX and HC12 RF module.
 
-<img src = "">
-<img src = "">
+<img src = "TRgede.jpg">
+<img src = "TRkecil.jpg">
 
